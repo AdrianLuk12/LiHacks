@@ -5,8 +5,6 @@ import { APIProvider, Map, AdvancedMarker, useMap } from "@vis.gl/react-google-m
 
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
 
-const DARK_MAP_ID = "sonicguessr-dark";
-
 interface GuessMapProps {
   onGuess: (lat: number, lng: number) => void;
   disabled?: boolean;
@@ -29,9 +27,9 @@ function ResultLine({
 
     polyRef.current = new google.maps.Polyline({
       path: [from, to],
-      strokeColor: "#f59e0b",
+      strokeColor: "#facc15",
       strokeWeight: 2,
-      strokeOpacity: 0.8,
+      strokeOpacity: 0.9,
       geodesic: true,
       map,
     });
@@ -101,8 +99,8 @@ export default function GuessMap({
           mapTypeControl={false}
           streetViewControl={false}
           fullscreenControl={false}
-          mapId={DARK_MAP_ID}
-          className="w-full h-full rounded-lg"
+          mapId="sonicguessr"
+          className="w-full h-full"
           colorScheme="LIGHT"
         >
           <MapClickHandler
@@ -111,19 +109,44 @@ export default function GuessMap({
             setGuess={stableSetGuess}
           />
 
-          {guess && (
-            <AdvancedMarker position={guess}>
-              <div className="w-4 h-4 rounded-full bg-red-500 border-2 border-white shadow-lg" />
+          {(guess || guessedLocation) && (
+            <AdvancedMarker position={(guess || guessedLocation)!}>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                {guessedLocation && (
+                  <div style={{ background: "#f97316", color: "white", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 4, marginBottom: 4, whiteSpace: "nowrap" }}>
+                    Your Guess
+                  </div>
+                )}
+                <div
+                  style={{
+                    width: 16,
+                    height: 16,
+                    borderRadius: "50%",
+                    background: "#f97316",
+                    border: "3px solid white",
+                    boxShadow: "0 0 0 1px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.3)",
+                  }}
+                />
+              </div>
             </AdvancedMarker>
           )}
 
           {actualLocation && (
             <AdvancedMarker position={actualLocation}>
-              <div className="flex flex-col items-center">
-                <div className="bg-black/80 text-white text-xs px-2 py-0.5 rounded mb-1 whitespace-nowrap">
-                  Actual Location
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                <div style={{ background: "#22c55e", color: "white", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 4, marginBottom: 4, whiteSpace: "nowrap" }}>
+                  Actual
                 </div>
-                <div className="w-4 h-4 rounded-full bg-green-500 border-2 border-white shadow-lg" />
+                <div
+                  style={{
+                    width: 16,
+                    height: 16,
+                    borderRadius: "50%",
+                    background: "#22c55e",
+                    border: "3px solid white",
+                    boxShadow: "0 0 0 1px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.3)",
+                  }}
+                />
               </div>
             </AdvancedMarker>
           )}
@@ -135,8 +158,8 @@ export default function GuessMap({
       </APIProvider>
 
       {!guess && !disabled && (
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-black/70 text-white text-sm px-3 py-1.5 rounded-full pointer-events-none z-[1000]">
-          Click the map to place your guess
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-black/60 text-white text-sm px-3 py-1.5 rounded-full pointer-events-none z-[1000]">
+          Click to place your guess
         </div>
       )}
     </div>

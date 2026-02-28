@@ -8,7 +8,7 @@ CRITICAL RULES:
 - NEVER mention any city name, neighborhood name, landmark name, or station name in ambientPrompt or musicPrompt.
 - ambientPrompt must describe 3-4 LOUD, CLEAR, DISTINCTIVE NON-VOCAL sounds that identify the COUNTRY (no human speech or announcements).
 - musicPrompt must describe country-specific instruments and musical style (no city/place names).
-- languagePhrase: 3-5 conversational sentences in the local language (a full natural paragraph). NEVER include city names or landmark names. Write a mini dialogue or monologue about everyday topics like ordering food, asking for directions, chatting about the weather, or haggling at a market.
+- languagePhrase: One full conversational sentence of 15-25 words in the local language. NOT a greeting or single word. Something like ordering food, asking for directions, or commenting on the weather. NEVER include city names or landmark names.
 - voiceDescription: describe the accent, gender, and approximate age for TTS voice generation.
 
 Respond ONLY with valid JSON matching this exact schema:
@@ -19,7 +19,7 @@ Respond ONLY with valid JSON matching this exact schema:
   "lng": number,
   "ambientPrompt": "3-4 distinct, loud, non-vocal sounds identifying this country. Max 80 words.",
   "musicPrompt": "Country-specific instruments, genre, and mood. No location names. Max 80 words.",
-  "languagePhrase": "3-5 conversational sentences in the local language. A natural paragraph about everyday life. No location names.",
+  "languagePhrase": "One full sentence of 15-25 words in the local language. NOT a greeting. A natural everyday sentence.",
   "languageTranslation": "English translation of the phrase.",
   "voiceDescription": "Accent, gender, age for TTS (e.g. 'Young French woman with soft Parisian accent')."
 }}
@@ -102,7 +102,7 @@ export async function generateLocationAndPrompts(): Promise<LocationData> {
 
   // Send a message and get the response
   const response = await bbFetch(`/threads/${threadId}/messages`, {
-    content: `Generate a random location in the ${region} region with audio prompts (seed: ${seed}). Respond ONLY with valid JSON, no markdown.`,
+    content: `Generate a random location in the ${region} region with audio prompts (seed: ${seed}). The languagePhrase must be one full sentence (15-25 words), NOT a short greeting. Respond ONLY with valid JSON, no markdown.`,
     role: "user",
   });
 
