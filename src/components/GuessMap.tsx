@@ -22,11 +22,19 @@ function ResultLine({
   const map = useMap();
   const polyRef = useRef<google.maps.Polyline | null>(null);
 
+  const fromLat = from.lat;
+  const fromLng = from.lng;
+  const toLat = to.lat;
+  const toLng = to.lng;
+
   useEffect(() => {
     if (!map) return;
 
+    const a = { lat: fromLat, lng: fromLng };
+    const b = { lat: toLat, lng: toLng };
+
     polyRef.current = new google.maps.Polyline({
-      path: [from, to],
+      path: [a, b],
       strokeColor: "#facc15",
       strokeWeight: 2,
       strokeOpacity: 0.9,
@@ -35,14 +43,14 @@ function ResultLine({
     });
 
     const bounds = new google.maps.LatLngBounds();
-    bounds.extend(from);
-    bounds.extend(to);
+    bounds.extend(a);
+    bounds.extend(b);
     map.fitBounds(bounds, 60);
 
     return () => {
       polyRef.current?.setMap(null);
     };
-  }, [map, from, to]);
+  }, [map, fromLat, fromLng, toLat, toLng]);
 
   return null;
 }
@@ -113,15 +121,12 @@ export default function GuessMap({
             const pos = (guess || guessedLocation)!;
             const showLabel = !!guessedLocation;
             const guessIsNorth = showLabel && actualLocation ? pos.lat > actualLocation.lat : false;
+            const labelOffset = guessIsNorth ? -24 : 12;
             return (
               <AdvancedMarker position={pos}>
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                  {showLabel && guessIsNorth && (
-                    <div style={{ background: "#f97316", color: "white", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 4, marginBottom: 4, whiteSpace: "nowrap" }}>
-                      Your Guess
-                    </div>
-                  )}
-                  <div style={{ position: "relative", width: 16, height: 16 }}>
+                <div style={{ position: "relative", width: 0, height: 0 }}>
+                  {/* Circle centered on the coordinate */}
+                  <div style={{ position: "absolute", left: -8, top: -8, width: 16, height: 16 }}>
                     {!showLabel && (
                       <div
                         className="guess-pin-pulse"
@@ -130,8 +135,8 @@ export default function GuessMap({
                     )}
                     <div style={{ position: "relative", width: 16, height: 16, borderRadius: "50%", background: "#f97316", border: "3px solid white", boxShadow: "0 0 0 1px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.3)" }} />
                   </div>
-                  {showLabel && !guessIsNorth && (
-                    <div style={{ background: "#f97316", color: "white", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 4, marginTop: 4, whiteSpace: "nowrap" }}>
+                  {showLabel && (
+                    <div style={{ position: "absolute", left: "50%", top: labelOffset, transform: "translateX(-50%)", background: "#f97316", color: "white", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 4, whiteSpace: "nowrap" }}>
                       Your Guess
                     </div>
                   )}
@@ -143,20 +148,15 @@ export default function GuessMap({
           {actualLocation && (() => {
             const guessPos = guessedLocation || guess;
             const actualIsNorth = guessPos ? actualLocation.lat > guessPos.lat : true;
+            const labelOffset = actualIsNorth ? -24 : 12;
             return (
               <AdvancedMarker position={actualLocation}>
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                  {actualIsNorth && (
-                    <div style={{ background: "#22c55e", color: "white", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 4, marginBottom: 4, whiteSpace: "nowrap" }}>
-                      Actual
-                    </div>
-                  )}
-                  <div style={{ width: 16, height: 16, borderRadius: "50%", background: "#22c55e", border: "3px solid white", boxShadow: "0 0 0 1px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.3)" }} />
-                  {!actualIsNorth && (
-                    <div style={{ background: "#22c55e", color: "white", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 4, marginTop: 4, whiteSpace: "nowrap" }}>
-                      Actual
-                    </div>
-                  )}
+                <div style={{ position: "relative", width: 0, height: 0 }}>
+                  {/* Circle centered on the coordinate */}
+                  <div style={{ position: "absolute", left: -8, top: -8, width: 16, height: 16, borderRadius: "50%", background: "#22c55e", border: "3px solid white", boxShadow: "0 0 0 1px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.3)" }} />
+                  <div style={{ position: "absolute", left: "50%", top: labelOffset, transform: "translateX(-50%)", background: "#22c55e", color: "white", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 4, whiteSpace: "nowrap" }}>
+                    Actual
+                  </div>
                 </div>
               </AdvancedMarker>
             );

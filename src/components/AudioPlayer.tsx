@@ -1,8 +1,10 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { Play, Pause, Volume2, LucideIcon } from "lucide-react";
 import { motion } from "framer-motion";
+
+const activePlayers = new Set<() => void>();
 
 interface AudioPlayerProps {
   src: string;
@@ -37,6 +39,7 @@ export default function AudioPlayer({ src, label, icon: Icon, autoPlay, onPlayed
     const onLoaded = () => {
       setDuration(audio.duration);
       if (autoPlayRef.current) {
+        activePlayers.forEach((pause) => pause());
         audio.play().then(() => setPlaying(true)).catch(() => {});
       }
     };
@@ -61,15 +64,30 @@ export default function AudioPlayer({ src, label, icon: Icon, autoPlay, onPlayed
     };
   }, [src]);
 
+  const pauseSelf = useCallback(() => {
+    const audio = audioRef.current;
+    if (audio && !audio.paused) {
+      audio.pause();
+      setPlaying(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    activePlayers.add(pauseSelf);
+    return () => { activePlayers.delete(pauseSelf); };
+  }, [pauseSelf]);
+
   const toggle = () => {
     const audio = audioRef.current;
     if (!audio) return;
     if (playing) {
       audio.pause();
+      setPlaying(false);
     } else {
+      activePlayers.forEach((pause) => { if (pause !== pauseSelf) pause(); });
       audio.play();
+      setPlaying(true);
     }
-    setPlaying(!playing);
   };
 
   const seek = (e: React.MouseEvent<HTMLDivElement>) => {
