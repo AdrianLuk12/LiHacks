@@ -5,7 +5,6 @@ import AudioPlayer from "@/components/AudioPlayer";
 import { MapPin, ArrowRight, Lock, Unlock } from "lucide-react";
 import dynamic from "next/dynamic";
 
-// Leaflet needs window, so load dynamically with SSR disabled
 const GuessMap = dynamic(() => import("@/components/GuessMap"), { ssr: false });
 
 const STAGE_LABELS = ["🔊 Ambient", "🎵 Music", "🗣️ Language"];
@@ -28,7 +27,6 @@ export default function GameScreen() {
 
   if (!audio) return null;
 
-  const currentAudioSrc = audio[STAGE_KEYS[stage - 1]];
   const canAdvance = stage < 3;
 
   return (
@@ -36,7 +34,7 @@ export default function GameScreen() {
       {/* Left panel: clues & controls */}
       <div className="lg:w-96 w-full bg-black/40 border-r border-white/10 p-6 flex flex-col gap-5 overflow-y-auto">
         <h2 className="text-xl font-bold">
-          Stage {stage} — {STAGE_LABELS[stage - 1]}
+          Stage {stage} of 3
         </h2>
 
         {/* Stage indicators */}
@@ -63,11 +61,30 @@ export default function GameScreen() {
           })}
         </div>
 
-        {/* Audio player */}
-        <AudioPlayer
-          src={currentAudioSrc}
-          label={`Stage ${stage}: ${STAGE_LABELS[stage - 1]}`}
-        />
+        {/* Audio players for all unlocked stages */}
+        <div className="flex flex-col gap-3">
+          {STAGE_KEYS.map((key, i) => {
+            const stageNum = i + 1;
+            const isUnlocked = stageNum <= stage;
+            if (!isUnlocked) return null;
+            const isCurrent = stageNum === stage;
+            return (
+              <div
+                key={key}
+                className={`rounded-lg transition ${
+                  isCurrent
+                    ? "ring-1 ring-amber-500/50"
+                    : "opacity-75 hover:opacity-100"
+                }`}
+              >
+                <AudioPlayer
+                  src={audio[key]}
+                  label={`${STAGE_LABELS[i]}`}
+                />
+              </div>
+            );
+          })}
+        </div>
 
         {/* Actions */}
         <div className="flex flex-col gap-2 mt-auto">

@@ -2,17 +2,26 @@ const BACKBOARD_BASE =
   process.env.BACKBOARD_API_URL || "https://app.backboard.io/api";
 const BACKBOARD_API_KEY = process.env.BACKBOARD_API_KEY || "";
 
-const SYSTEM_PROMPT = `You are a geography expert. Generate a random real-world location and audio prompts for a geography guessing game. Respond ONLY with valid JSON matching this exact schema:
+const SYSTEM_PROMPT = `You are a geography expert creating audio prompts for a geography guessing game.
+
+CRITICAL RULES:
+- NEVER mention any city name, neighborhood name, landmark name, or station name in ambientPrompt or musicPrompt.
+- ambientPrompt must describe 3-4 LOUD, CLEAR, DISTINCTIVE NON-VOCAL sounds that identify the COUNTRY (no human speech or announcements).
+- musicPrompt must describe country-specific instruments and musical style (no city/place names).
+- languagePhrase: 2-3 conversational sentences in the local language (NOT just one short phrase). NEVER include city names or landmark names. Write about everyday topics like food, weather, or directions.
+- voiceDescription: describe the accent, gender, and approximate age for TTS voice generation.
+
+Respond ONLY with valid JSON matching this exact schema:
 {{
   "city": "string",
   "country": "string",
   "lat": number,
   "lng": number,
-  "ambientPrompt": "A vivid description of the ambient sounds at this location for a sound effects AI generator (e.g. bustling market, ocean waves, traffic). Max 100 words.",
-  "musicPrompt": "A description of the regional musical style, instruments, and mood for music generation. Max 100 words.",
-  "languagePhrase": "A common everyday phrase in the local language written in its original script or romanized form.",
+  "ambientPrompt": "3-4 distinct, loud, non-vocal sounds identifying this country. Max 80 words.",
+  "musicPrompt": "Country-specific instruments, genre, and mood. No location names. Max 80 words.",
+  "languagePhrase": "2-3 conversational sentences in the local language about everyday topics. No location names.",
   "languageTranslation": "English translation of the phrase.",
-  "voiceDescription": "Description of the voice characteristics (accent, gender, age) for TTS."
+  "voiceDescription": "Accent, gender, age for TTS (e.g. 'Young French woman with soft Parisian accent')."
 }}
 Pick diverse and interesting locations. Avoid overly obvious capitals.`;
 

@@ -5,6 +5,7 @@ import {
   generateSoundEffect,
   generateMusic,
   generateSpeech,
+  deleteVoice,
 } from "@/lib/elevenlabs";
 import { setSession } from "@/lib/sessions";
 
@@ -12,23 +13,24 @@ export async function POST() {
   try {
     const location = await generateLocationAndPrompts();
 
-    // Generate all 3 audio clips in parallel
-    const [ambientBuf, musicBuf, speechBuf] = await Promise.all([
+    const [ambientBuf, musicBuf, speechResult] = await Promise.all([
       generateSoundEffect(location.ambientPrompt),
       generateMusic(location.musicPrompt),
       generateSpeech(location.languagePhrase, location.voiceDescription),
     ]);
 
+    // Clean up dynamically generated voice
+    deleteVoice(speechResult.voiceId).catch(() => {});
+
     const sessionId = randomUUID();
 
-    // Encode audio as base64 data URIs
     const toDataUri = (buf: Buffer, mime = "audio/mpeg") =>
       `data:${mime};base64,${buf.toString("base64")}`;
 
     const audioUrls = {
       ambient: toDataUri(ambientBuf),
       music: toDataUri(musicBuf),
-      language: toDataUri(speechBuf),
+      language: toDataUri(speechResult.buffer),
     };
 
     setSession({

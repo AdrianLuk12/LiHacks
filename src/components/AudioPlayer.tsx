@@ -18,6 +18,10 @@ export default function AudioPlayer({ src, label }: AudioPlayerProps) {
     const audio = audioRef.current;
     if (!audio) return;
 
+    setPlaying(false);
+    setProgress(0);
+    setDuration(0);
+
     const onTimeUpdate = () =>
       setProgress(audio.duration ? audio.currentTime / audio.duration : 0);
     const onLoaded = () => setDuration(audio.duration);
@@ -27,6 +31,7 @@ export default function AudioPlayer({ src, label }: AudioPlayerProps) {
     audio.addEventListener("loadedmetadata", onLoaded);
     audio.addEventListener("ended", onEnded);
     return () => {
+      audio.pause();
       audio.removeEventListener("timeupdate", onTimeUpdate);
       audio.removeEventListener("loadedmetadata", onLoaded);
       audio.removeEventListener("ended", onEnded);
