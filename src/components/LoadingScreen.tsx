@@ -7,10 +7,6 @@ export default function LoadingScreen() {
     <div className="flex flex-col items-center justify-center min-h-screen px-4 gap-6">
       <div className="relative">
         <Headphones size={64} className="text-amber-500 animate-pulse" />
-        <Loader2
-          size={24}
-          className="absolute -bottom-1 -right-1 text-amber-400 animate-spin"
-        />
       </div>
       <div className="text-center">
         <h2 className="text-xl font-bold mb-2">Tuning the radio…</h2>

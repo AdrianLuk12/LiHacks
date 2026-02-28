@@ -33,8 +33,8 @@ export default function WelcomeScreen({ onStart }: WelcomeScreenProps) {
       <div className="bg-white/5 border border-white/10 rounded-2xl p-6 w-full max-w-sm">
         <h2 className="text-lg font-semibold mb-1">How It Works</h2>
         <ol className="text-sm text-gray-400 text-left list-decimal list-inside space-y-1 mb-6">
-          <li>🔊 Stage 1 — Ambient sounds (1.5× multiplier)</li>
-          <li>🎵 Stage 2 — Regional music (1.2× multiplier)</li>
+          <li>🔊 Stage 1 — Ambient sounds (3.0× multiplier)</li>
+          <li>🎵 Stage 2 — Regional music (1.8× multiplier)</li>
           <li>🗣️ Stage 3 — Spoken language (1.0× multiplier)</li>
         </ol>
 

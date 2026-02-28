@@ -39,7 +39,14 @@ export async function addScore(
     submittedSessions.add(sessionId);
   }
   const entries = await readLeaderboard();
-  entries.push({ username, score, date: new Date().toISOString() });
+  const existing = entries.find((e) => e.username === username);
+  if (existing) {
+    if (score <= existing.score) return readLeaderboard(); // existing score is higher, keep it
+    existing.score = score;
+    existing.date = new Date().toISOString();
+  } else {
+    entries.push({ username, score, date: new Date().toISOString() });
+  }
   await writeLeaderboard(entries);
   return readLeaderboard();
 }

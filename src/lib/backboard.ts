@@ -77,6 +77,7 @@ async function getOrCreateAssistant(): Promise<string> {
     name: "SonicGuessr Location Generator",
     description: "Generates random locations with audio prompts for a geography guessing game",
     system_prompt: SYSTEM_PROMPT,
+    model: "gemini-3-flash-preview",
   });
   cachedAssistantId = assistant.assistant_id;
   return assistant.assistant_id;
