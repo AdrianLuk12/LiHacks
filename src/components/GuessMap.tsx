@@ -1,9 +1,13 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
-import { APIProvider, Map, AdvancedMarker, useMap } from "@vis.gl/react-google-maps";
+import { useState, useCallback } from "react";
+import { Globe as GlobeIcon, Map as MapIcon } from "lucide-react";
+import dynamic from "next/dynamic";
 
-const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
+const GuessGlobe = dynamic(() => import("@/components/GuessGlobe"), { ssr: false });
+const GuessGoogleMap = dynamic(() => import("@/components/GuessGoogleMap"), { ssr: false });
+
+type ViewMode = "globe" | "map";
 
 interface GuessMapProps {
   onGuess: (lat: number, lng: number) => void;
@@ -12,167 +16,75 @@ interface GuessMapProps {
   guessedLocation?: { lat: number; lng: number } | null;
 }
 
-function ResultLine({
-  from,
-  to,
-}: {
-  from: { lat: number; lng: number };
-  to: { lat: number; lng: number };
-}) {
-  const map = useMap();
-  const polyRef = useRef<google.maps.Polyline | null>(null);
-
-  const fromLat = from.lat;
-  const fromLng = from.lng;
-  const toLat = to.lat;
-  const toLng = to.lng;
-
-  useEffect(() => {
-    if (!map) return;
-
-    const a = { lat: fromLat, lng: fromLng };
-    const b = { lat: toLat, lng: toLng };
-
-    polyRef.current = new google.maps.Polyline({
-      path: [a, b],
-      strokeColor: "#facc15",
-      strokeWeight: 2,
-      strokeOpacity: 0.9,
-      geodesic: true,
-      map,
-    });
-
-    const bounds = new google.maps.LatLngBounds();
-    bounds.extend(a);
-    bounds.extend(b);
-    map.fitBounds(bounds, 60);
-
-    return () => {
-      polyRef.current?.setMap(null);
-    };
-  }, [map, fromLat, fromLng, toLat, toLng]);
-
-  return null;
-}
-
-function MapClickHandler({
-  onGuess,
-  disabled,
-  setGuess,
-}: {
-  onGuess: (lat: number, lng: number) => void;
-  disabled: boolean;
-  setGuess: (pos: { lat: number; lng: number }) => void;
-}) {
-  const map = useMap();
-
-  useEffect(() => {
-    if (!map || disabled) return;
-    const listener = map.addListener("click", (e: google.maps.MapMouseEvent) => {
-      if (!e.latLng) return;
-      const lat = e.latLng.lat();
-      const lng = e.latLng.lng();
-      setGuess({ lat, lng });
-      onGuess(lat, lng);
-    });
-    return () => listener.remove();
-  }, [map, disabled, onGuess, setGuess]);
-
-  return null;
-}
-
 export default function GuessMap({
   onGuess,
   disabled = false,
   actualLocation,
   guessedLocation,
 }: GuessMapProps) {
+  const [viewMode, setViewMode] = useState<ViewMode>("globe");
   const [guess, setGuess] = useState<{ lat: number; lng: number } | null>(null);
 
-  const stableSetGuess = useCallback(
-    (pos: { lat: number; lng: number }) => setGuess(pos),
-    []
+  const handleGuess = useCallback(
+    (lat: number, lng: number) => {
+      setGuess({ lat, lng });
+      onGuess(lat, lng);
+    },
+    [onGuess]
   );
 
+  const sharedProps = {
+    onGuess: handleGuess,
+    disabled,
+    actualLocation,
+    guessedLocation,
+    externalGuess: guess,
+  };
+
+  const hintText = viewMode === "globe"
+    ? "Double click the globe to place your guess"
+    : "Click the map to place your guess";
+
   return (
-    <div className="relative w-full h-full">
-      <APIProvider apiKey={API_KEY}>
-        <Map
-          defaultCenter={{ lat: 20, lng: 0 }}
-          defaultZoom={2}
-          minZoom={2}
-          gestureHandling="greedy"
-          disableDefaultUI
-          zoomControl
-          mapTypeControl={false}
-          streetViewControl={false}
-          fullscreenControl={false}
-          mapId="echoguessr"
-          className="w-full h-full"
-          colorScheme="LIGHT"
-        >
-          <MapClickHandler
-            onGuess={onGuess}
-            disabled={disabled}
-            setGuess={stableSetGuess}
-          />
+    <div className="relative w-full h-full overflow-hidden">
+      {viewMode === "globe" ? (
+        <GuessGlobe {...sharedProps} />
+      ) : (
+        <GuessGoogleMap {...sharedProps} />
+      )}
 
-          {(guess || guessedLocation) && (() => {
-            const pos = (guess || guessedLocation)!;
-            const showLabel = !!guessedLocation;
-            const guessIsNorth = showLabel && actualLocation ? pos.lat > actualLocation.lat : false;
-            const labelOffset = guessIsNorth ? -24 : 12;
-            return (
-              <AdvancedMarker position={pos}>
-                <div style={{ position: "relative", width: 0, height: 0 }}>
-                  {/* Circle centered on the coordinate */}
-                  <div style={{ position: "absolute", left: -8, top: -8, width: 16, height: 16 }}>
-                    {!showLabel && (
-                      <div
-                        className="guess-pin-pulse"
-                        style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "#f97316" }}
-                      />
-                    )}
-                    <div style={{ position: "relative", width: 16, height: 16, borderRadius: "50%", background: "#f97316", border: "3px solid white", boxShadow: "0 0 0 1px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.3)" }} />
-                  </div>
-                  {showLabel && (
-                    <div style={{ position: "absolute", left: "50%", top: labelOffset, transform: "translateX(-50%)", background: "#f97316", color: "white", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 4, whiteSpace: "nowrap" }}>
-                      Your Guess
-                    </div>
-                  )}
-                </div>
-              </AdvancedMarker>
-            );
-          })()}
-
-          {actualLocation && (() => {
-            const guessPos = guessedLocation || guess;
-            const actualIsNorth = guessPos ? actualLocation.lat > guessPos.lat : true;
-            const labelOffset = actualIsNorth ? -24 : 12;
-            return (
-              <AdvancedMarker position={actualLocation}>
-                <div style={{ position: "relative", width: 0, height: 0 }}>
-                  {/* Circle centered on the coordinate */}
-                  <div style={{ position: "absolute", left: -8, top: -8, width: 16, height: 16, borderRadius: "50%", background: "#22c55e", border: "3px solid white", boxShadow: "0 0 0 1px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.3)" }} />
-                  <div style={{ position: "absolute", left: "50%", top: labelOffset, transform: "translateX(-50%)", background: "#22c55e", color: "white", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 4, whiteSpace: "nowrap" }}>
-                    Actual
-                  </div>
-                </div>
-              </AdvancedMarker>
-            );
-          })()}
-
-          {actualLocation && guessedLocation && (
-            <ResultLine from={guessedLocation} to={actualLocation} />
-          )}
-        </Map>
-      </APIProvider>
-
+      {/* Hint text */}
       {!guess && !disabled && (
         <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-black/70 text-white text-sm px-3 py-1.5 rounded-full pointer-events-none z-1000">
-          Click the map to place your guess
+          {hintText}
         </div>
       )}
+
+      {/* View mode toggle */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-1000 flex items-center bg-black/70 backdrop-blur-sm rounded-full border border-white/15 p-1 gap-1">
+        <button
+          onClick={() => setViewMode("globe")}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+            viewMode === "globe"
+              ? "bg-amber-500 text-black"
+              : "text-white/70 hover:text-white hover:bg-white/10"
+          }`}
+        >
+          <GlobeIcon size={14} />
+          Globe
+        </button>
+        <button
+          onClick={() => setViewMode("map")}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+            viewMode === "map"
+              ? "bg-amber-500 text-black"
+              : "text-white/70 hover:text-white hover:bg-white/10"
+          }`}
+        >
+          <MapIcon size={14} />
+          Map
+        </button>
+      </div>
     </div>
   );
 }
