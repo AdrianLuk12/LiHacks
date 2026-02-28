@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useGame } from "@/context/GameContext";
-import AudioPlayer from "@/components/AudioPlayer";
+import AudioPlayer, { toggleActivePlayer } from "@/components/AudioPlayer";
 import { MapPin, ArrowRight, Lock, Unlock, Volume2, Music, MessageCircle } from "lucide-react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
@@ -38,6 +38,17 @@ export default function GameScreen() {
       return next;
     });
   }, []);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.code === "Space") { e.preventDefault(); toggleActivePlayer(); }
+      if (e.code === "KeyN" && stage < 3 && playedStages.has(stage)) nextStage();
+      if (e.code === "Enter" && guessCoords && !isLoading) submitGuess();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [stage, playedStages, guessCoords, isLoading, nextStage, submitGuess]);
 
   if (!audio) return null;
 

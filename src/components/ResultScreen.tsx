@@ -1,13 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useGame } from "@/context/GameContext";
 import { MapPin, Trophy, RotateCcw } from "lucide-react";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
-import { useEffect, useRef } from "react";
+import confetti from "canvas-confetti";
 
 const GuessMap = dynamic(() => import("@/components/GuessMap"), { ssr: false });
+
+const DISTANCE_COMPARISONS = [
+  { km: 50, text: "you could walk there" },
+  { km: 150, text: "a short drive away" },
+  { km: 350, text: "roughly London to Paris" },           // 340 km
+  { km: 700, text: "roughly Berlin to Paris" },            // 880 km
+  { km: 1200, text: "roughly London to Berlin" },          // 930 km
+  { km: 2000, text: "roughly London to Rome" },            // 1,430 km
+  { km: 3000, text: "roughly London to Moscow" },          // 2,500 km
+  { km: 6000, text: "roughly New York to London" },        // 5,570 km
+  { km: 10000, text: "roughly London to Tokyo" },          // 9,560 km
+  { km: 15000, text: "nearly halfway around the world" },
+];
+
+function distanceContext(km: number): string {
+  if (km < 10) return "almost a perfect guess!";
+  for (const c of DISTANCE_COMPARISONS) {
+    if (km <= c.km) return c.text;
+  }
+  return "more than halfway around the world";
+}
 
 const listVariants = {
   hidden: {},
@@ -44,6 +65,19 @@ export default function ResultScreen() {
   if (!result) return null;
 
   const { score, distance, actualLocation, guessedLocation, stage } = result;
+
+  useEffect(() => {
+    if (score >= 3000) {
+      const duration = score >= 8000 ? 3000 : 1500;
+      const end = Date.now() + duration;
+      const frame = () => {
+        confetti({ particleCount: score >= 8000 ? 4 : 2, angle: 60, spread: 55, origin: { x: 0, y: 0.7 } });
+        confetti({ particleCount: score >= 8000 ? 4 : 2, angle: 120, spread: 55, origin: { x: 1, y: 0.7 } });
+        if (Date.now() < end) requestAnimationFrame(frame);
+      };
+      frame();
+    }
+  }, [score]);
 
   return (
     <div className="flex flex-col lg:flex-row h-screen">
@@ -82,11 +116,16 @@ export default function ResultScreen() {
                 {actualLocation.city}, {actualLocation.country}
               </span>
             </motion.div>
-            <motion.div variants={rowVariants} transition={{ duration: 0.35 }} className="flex justify-between">
-              <span className="text-gray-400">Distance</span>
-              <span className="text-white font-medium">
-                {distance.toLocaleString()} km
-              </span>
+            <motion.div variants={rowVariants} transition={{ duration: 0.35 }}>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Distance</span>
+                <span className="text-white font-medium">
+                  {distance.toLocaleString()} km
+                </span>
+              </div>
+              <p className="text-gray-500 text-xs mt-0.5 text-right italic">
+                {distanceContext(distance)}
+              </p>
             </motion.div>
             <motion.div variants={rowVariants} transition={{ duration: 0.35 }} className="flex justify-between">
               <span className="text-gray-400">Guessed at</span>

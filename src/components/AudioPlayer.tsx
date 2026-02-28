@@ -5,6 +5,11 @@ import { Play, Pause, Volume2, LucideIcon } from "lucide-react";
 import { motion } from "framer-motion";
 
 const activePlayers = new Set<() => void>();
+let currentToggle: (() => void) | null = null;
+
+export function toggleActivePlayer() {
+  currentToggle?.();
+}
 
 interface AudioPlayerProps {
   src: string;
@@ -77,7 +82,7 @@ export default function AudioPlayer({ src, label, icon: Icon, autoPlay, onPlayed
     return () => { activePlayers.delete(pauseSelf); };
   }, [pauseSelf]);
 
-  const toggle = () => {
+  const toggle = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) return;
     if (playing) {
@@ -87,8 +92,14 @@ export default function AudioPlayer({ src, label, icon: Icon, autoPlay, onPlayed
       activePlayers.forEach((pause) => { if (pause !== pauseSelf) pause(); });
       audio.play();
       setPlaying(true);
+      currentToggle = () => {
+        const a = audioRef.current;
+        if (!a) return;
+        if (a.paused) { a.play(); setPlaying(true); }
+        else { a.pause(); setPlaying(false); }
+      };
     }
-  };
+  }, [playing, pauseSelf]);
 
   const seek = (e: React.MouseEvent<HTMLDivElement>) => {
     const audio = audioRef.current;
