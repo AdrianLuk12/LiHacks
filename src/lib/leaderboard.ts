@@ -10,6 +10,9 @@ export interface LeaderboardEntry {
 const LEADERBOARD_PATH = path.join(process.cwd(), "leaderboard.json");
 const MAX_ENTRIES = 100;
 
+// Track session IDs that have already submitted a score (in-memory, per process)
+const submittedSessions = new Set<string>();
+
 export async function readLeaderboard(): Promise<LeaderboardEntry[]> {
   try {
     const data = await fs.readFile(LEADERBOARD_PATH, "utf-8");
@@ -28,8 +31,13 @@ export async function writeLeaderboard(
 
 export async function addScore(
   username: string,
-  score: number
-): Promise<LeaderboardEntry[]> {
+  score: number,
+  sessionId?: string
+): Promise<LeaderboardEntry[] | null> {
+  if (sessionId) {
+    if (submittedSessions.has(sessionId)) return null; // already submitted
+    submittedSessions.add(sessionId);
+  }
   const entries = await readLeaderboard();
   entries.push({ username, score, date: new Date().toISOString() });
   await writeLeaderboard(entries);

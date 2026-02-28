@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useGame } from "@/context/GameContext";
 import { MapPin, Trophy, RotateCcw } from "lucide-react";
 import dynamic from "next/dynamic";
@@ -7,7 +8,7 @@ import dynamic from "next/dynamic";
 const GuessMap = dynamic(() => import("@/components/GuessMap"), { ssr: false });
 
 export default function ResultScreen() {
-  const { result, goToLeaderboard, playAgain, username } = useGame();
+  const { result, goToLeaderboard, playAgain, username, sessionId } = useGame();
   if (!result) return null;
 
   const { score, distance, actualLocation, guessedLocation, stage } = result;
@@ -57,7 +58,7 @@ export default function ResultScreen() {
         </div>
 
         <div className="flex flex-col gap-2 mt-auto">
-          <SaveScoreButton username={username} score={score} />
+          <SaveScoreButton username={username} score={score} sessionId={sessionId} />
           <button
             onClick={goToLeaderboard}
             className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white font-medium transition"
@@ -89,24 +90,34 @@ export default function ResultScreen() {
 function SaveScoreButton({
   username,
   score,
+  sessionId,
 }: {
   username: string;
   score: number;
+  sessionId: string | null;
 }) {
+  const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+
   const handleSave = async () => {
+    if (saved || saving) return;
+    setSaving(true);
     await fetch("/api/leaderboard", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, score }),
+      body: JSON.stringify({ username, score, sessionId }),
     });
+    setSaving(false);
+    setSaved(true);
   };
 
   return (
     <button
       onClick={handleSave}
-      className="px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium transition"
+      disabled={saved || saving}
+      className="px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
     >
-      Save Score to Leaderboard
+      {saved ? "Score Saved!" : saving ? "Saving…" : "Save Score to Leaderboard"}
     </button>
   );
 }
