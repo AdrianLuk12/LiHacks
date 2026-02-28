@@ -17,14 +17,14 @@ export interface GameSession {
 
 // Persist across Next.js dev-mode module reloads via globalThis
 const globalSessions = globalThis as typeof globalThis & {
-  __sonicGuessrSessions?: Map<string, GameSession>;
+  __echoGuessrSessions?: Map<string, GameSession>;
 };
 
-if (!globalSessions.__sonicGuessrSessions) {
-  globalSessions.__sonicGuessrSessions = new Map();
+if (!globalSessions.__echoGuessrSessions) {
+  globalSessions.__echoGuessrSessions = new Map();
 }
 
-const sessions = globalSessions.__sonicGuessrSessions;
+const sessions = globalSessions.__echoGuessrSessions;
 
 export function setSession(session: GameSession) {
   sessions.set(session.id, session);

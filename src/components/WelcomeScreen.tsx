@@ -43,14 +43,12 @@ export default function WelcomeScreen({ onStart }: WelcomeScreenProps) {
       <motion.div className="mb-6 flex items-center gap-3" variants={itemVariants} transition={{ duration: 0.5, ease: "easeOut" }}>
         <Headphones size={48} className="text-amber-500" />
         <h1 className="text-5xl font-extrabold tracking-tight">
-          Sonic<span className="text-amber-500">Guessr</span>
+          Echo<span className="text-amber-500">Guessr</span>
         </h1>
       </motion.div>
 
       <motion.p className="text-gray-400 max-w-md mb-8 leading-relaxed" variants={itemVariants} transition={{ duration: 0.5, ease: "easeOut" }}>
-        Listen to <strong className="text-white">three audio clues</strong> —
-        ambient sounds, regional music, and a spoken phrase — and guess the
-        location on the map. The earlier you guess, the more points you score!
+        A mystery location is hidden behind <strong className="text-white">three audio clues</strong>: ambient sounds, regional music, and a spoken phrase. Listen closely, place your pin on the map, and see how close you get. The fewer clues you need, the higher you score.
       </motion.p>
 
       <motion.div
