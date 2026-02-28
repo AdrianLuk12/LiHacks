@@ -8,7 +8,7 @@ CRITICAL RULES:
 - NEVER mention any city name, neighborhood name, landmark name, or station name in ambientPrompt or musicPrompt.
 - ambientPrompt must describe 3-4 LOUD, CLEAR, DISTINCTIVE NON-VOCAL sounds that identify the COUNTRY (no human speech or announcements).
 - musicPrompt must describe country-specific instruments and musical style (no city/place names).
-- languagePhrase: 2-3 conversational sentences in the local language (NOT just one short phrase). NEVER include city names or landmark names. Write about everyday topics like food, weather, or directions.
+- languagePhrase: 3-5 conversational sentences in the local language (a full natural paragraph). NEVER include city names or landmark names. Write a mini dialogue or monologue about everyday topics like ordering food, asking for directions, chatting about the weather, or haggling at a market.
 - voiceDescription: describe the accent, gender, and approximate age for TTS voice generation.
 
 Respond ONLY with valid JSON matching this exact schema:
@@ -19,7 +19,7 @@ Respond ONLY with valid JSON matching this exact schema:
   "lng": number,
   "ambientPrompt": "3-4 distinct, loud, non-vocal sounds identifying this country. Max 80 words.",
   "musicPrompt": "Country-specific instruments, genre, and mood. No location names. Max 80 words.",
-  "languagePhrase": "2-3 conversational sentences in the local language about everyday topics. No location names.",
+  "languagePhrase": "3-5 conversational sentences in the local language. A natural paragraph about everyday life. No location names.",
   "languageTranslation": "English translation of the phrase.",
   "voiceDescription": "Accent, gender, age for TTS (e.g. 'Young French woman with soft Parisian accent')."
 }}

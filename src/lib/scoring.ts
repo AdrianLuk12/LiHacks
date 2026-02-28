@@ -15,10 +15,11 @@ export function haversineDistance(
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-const STAGE_MULTIPLIERS: Record<number, number> = { 1: 1.5, 2: 1.2, 3: 1.0 };
+const STAGE_MULTIPLIERS: Record<number, number> = { 1: 3.0, 2: 1.8, 3: 1.0 };
 const MAX_POINTS = 5000;
 
 export function calculateScore(distanceKm: number, stage: number): number {
   const multiplier = STAGE_MULTIPLIERS[stage] ?? 1.0;
-  return Math.max(0, Math.round((MAX_POINTS - distanceKm) * multiplier));
+  const base = MAX_POINTS * Math.exp(-distanceKm / 2000);
+  return Math.min(MAX_POINTS * 3, Math.max(0, Math.round(base * multiplier)));
 }
