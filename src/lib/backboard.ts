@@ -80,9 +80,19 @@ export async function generateLocationAndPrompts(): Promise<LocationData> {
   const thread = await bbFetch(`/assistants/${assistantId}/threads`, {});
   const threadId = thread.thread_id;
 
+  // Inject a random seed and region hint so the LLM never returns a cached/deterministic result
+  const regions = [
+    "Western Europe", "Eastern Europe", "Sub-Saharan Africa", "North Africa",
+    "Middle East", "South Asia", "Southeast Asia", "East Asia", "Central Asia",
+    "North America", "Central America", "South America", "Caribbean",
+    "Oceania", "Scandinavia", "Balkans",
+  ];
+  const region = regions[Math.floor(Math.random() * regions.length)];
+  const seed = Math.random().toString(36).slice(2, 8);
+
   // Send a message and get the response
   const response = await bbFetch(`/threads/${threadId}/messages`, {
-    content: "Generate a random location with audio prompts. Respond ONLY with valid JSON, no markdown.",
+    content: `Generate a random location in the ${region} region with audio prompts (seed: ${seed}). Respond ONLY with valid JSON, no markdown.`,
     role: "user",
   });
 
