@@ -1,7 +1,8 @@
 "use client";
 
+import { useState, useCallback, useEffect } from "react";
 import { useGame } from "@/context/GameContext";
-import AudioPlayer from "@/components/AudioPlayer";
+import AudioPlayer, { toggleActivePlayer } from "@/components/AudioPlayer";
 import { MapPin, ArrowRight, Lock, Unlock, Volume2, Music, MessageCircle } from "lucide-react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
@@ -15,6 +16,7 @@ const STAGE_KEYS: Array<"ambient" | "music" | "language"> = [
   "music",
   "language",
 ];
+const STAGE_MULTIPLIERS = ["3.0×", "1.8×", "1.0×"];
 
 export default function GameScreen() {
   const {
@@ -27,9 +29,31 @@ export default function GameScreen() {
     nextStage,
   } = useGame();
 
+  const [playedStages, setPlayedStages] = useState<Set<number>>(() => new Set());
+
+  const markPlayed = useCallback((stageNum: number) => {
+    setPlayedStages((prev) => {
+      const next = new Set(prev);
+      next.add(stageNum);
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.code === "Space") { e.preventDefault(); toggleActivePlayer(); }
+      if (e.code === "KeyN" && stage < 3 && playedStages.has(stage)) nextStage();
+      if (e.code === "Enter" && guessCoords && !isLoading) submitGuess();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [stage, playedStages, guessCoords, isLoading, nextStage, submitGuess]);
+
   if (!audio) return null;
 
   const canAdvance = stage < 3;
+  const hasPlayedCurrent = playedStages.has(stage);
 
   return (
     <motion.div
@@ -62,7 +86,8 @@ export default function GameScreen() {
                 initial={{ opacity: 0, scale: 0.85 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3, delay: 0.15 + i * 0.07 }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition ${
+                title={`${label} — ${STAGE_MULTIPLIERS[i]} score multiplier`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition cursor-default ${
                   isCurrent
                     ? "bg-amber-500/20 border-amber-500 text-amber-400"
                     : isUnlocked
@@ -73,6 +98,7 @@ export default function GameScreen() {
                 {isUnlocked ? <Unlock size={12} /> : <Lock size={12} />}
                 <Icon size={11} />
                 {label}
+                <span className="text-[10px] opacity-60">{STAGE_MULTIPLIERS[i]}</span>
               </motion.div>
             );
           })}
@@ -103,6 +129,8 @@ export default function GameScreen() {
                     src={audio[key]}
                     label={`${STAGE_LABELS[i]}`}
                     icon={Icon}
+                    autoPlay={isCurrent}
+                    onPlayed={() => markPlayed(stageNum)}
                   />
                 </motion.div>
               );
@@ -119,13 +147,18 @@ export default function GameScreen() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.97 }}
+                whileHover={hasPlayedCurrent ? { scale: 1.02 } : undefined}
+                whileTap={hasPlayedCurrent ? { scale: 0.97 } : undefined}
                 transition={{ duration: 0.25 }}
                 onClick={nextStage}
-                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white font-medium transition"
+                disabled={!hasPlayedCurrent}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white font-medium transition disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white/10"
               >
-                Next Clue <ArrowRight size={16} />
+                {hasPlayedCurrent ? (
+                  <>Next Clue <ArrowRight size={16} /></>
+                ) : (
+                  <>Listen first <ArrowRight size={16} /></>
+                )}
               </motion.button>
             )}
           </AnimatePresence>

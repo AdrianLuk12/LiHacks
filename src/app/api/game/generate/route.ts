@@ -19,7 +19,6 @@ export async function POST() {
       generateSpeech(location.languagePhrase, location.voiceDescription),
     ]);
 
-    // Clean up dynamically generated voice
     deleteVoice(speechResult.voiceId).catch(() => {});
 
     const sessionId = randomUUID();
@@ -46,7 +45,6 @@ export async function POST() {
       languageTranslation: location.languageTranslation,
     });
 
-    // Return audio and session ID — but NOT the actual coordinates
     return NextResponse.json({
       sessionId,
       audio: audioUrls,

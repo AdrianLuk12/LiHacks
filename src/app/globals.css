@@ -8,5 +8,21 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  background-image: radial-gradient(ellipse at 50% 0%, #1a1a2e 0%, #0a0a0a 70%);
+  background-attachment: fixed;
+}
+
+@keyframes pin-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(3);
+    opacity: 0;
+  }
+}
+
+.guess-pin-pulse {
+  animation: pin-pulse 1.2s ease-out infinite;
 }

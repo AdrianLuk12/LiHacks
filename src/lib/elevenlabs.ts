@@ -65,7 +65,7 @@ async function generateVoiceForDescription(
       "xi-api-key": ELEVENLABS_API_KEY,
     },
     body: JSON.stringify({
-      voice_name: `SonicGuessr-${Date.now()}`,
+      voice_name: `EchoGuessr-${Date.now()}`,
       voice_description: voiceDescription,
       generated_voice_id: generatedId,
     }),

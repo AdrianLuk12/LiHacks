@@ -1,4 +1,4 @@
-# 🎧 SonicGuessr
+# 🎧 EchoGuessr
 
 An audio-based geography guessing game where players identify real-world locations by listening to AI-generated sound clues. Built for LiHacks.
 

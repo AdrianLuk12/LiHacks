@@ -65,7 +65,7 @@ async function getOrCreateAssistant(): Promise<string> {
   if (listRes.ok) {
     const assistants = await listRes.json();
     const existing = assistants.find(
-      (a: { name?: string }) => a.name === "SonicGuessr Location Generator"
+      (a: { name?: string }) => a.name === "EchoGuessr Location Generator"
     );
     if (existing) {
       cachedAssistantId = existing.assistant_id;
@@ -74,7 +74,7 @@ async function getOrCreateAssistant(): Promise<string> {
   }
 
   const assistant = await bbFetch("/assistants", {
-    name: "SonicGuessr Location Generator",
+    name: "EchoGuessr Location Generator",
     description: "Generates random locations with audio prompts for a geography guessing game",
     system_prompt: SYSTEM_PROMPT,
     model: "gemini-3-flash-preview",

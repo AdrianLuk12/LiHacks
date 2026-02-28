@@ -1,5 +1,5 @@
 {
-  "name": "sonic-guessr",
+  "name": "echo-guessr",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@vis.gl/react-google-maps": "^1.7.1",
+    "canvas-confetti": "^1.9.4",
     "framer-motion": "^12.34.3",
     "lucide-react": "^0.468.0",
     "next": "^15.1.0",
@@ -19,6 +20,8 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.0.0",
+    "@types/canvas-confetti": "^1.9.0",
+    "@types/leaflet": "^1.9.14",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",

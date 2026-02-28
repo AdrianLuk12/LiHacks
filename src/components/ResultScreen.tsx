@@ -1,13 +1,46 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useGame } from "@/context/GameContext";
 import { MapPin, Trophy, RotateCcw } from "lucide-react";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
-import { useEffect, useRef } from "react";
+import confetti from "canvas-confetti";
 
 const GuessMap = dynamic(() => import("@/components/GuessMap"), { ssr: false });
+
+const DISTANCE_COMPARISONS = [
+  { km: 50, text: "you could walk there" },
+  { km: 150, text: "a short drive away" },
+  { km: 350, text: "roughly London to Paris" },           // 340 km
+  { km: 700, text: "roughly Berlin to Paris" },            // 880 km
+  { km: 1200, text: "roughly London to Berlin" },          // 930 km
+  { km: 2000, text: "roughly London to Rome" },            // 1,430 km
+  { km: 3000, text: "roughly London to Moscow" },          // 2,500 km
+  { km: 6000, text: "roughly New York to London" },        // 5,570 km
+  { km: 10000, text: "roughly London to Tokyo" },          // 9,560 km
+  { km: 15000, text: "nearly halfway around the world" },
+];
+
+const SCORE_TIERS = [
+  { min: 8000, label: "Perfect", emoji: "🎯", color: "text-amber-400", bg: "bg-amber-500/20 border-amber-500/40" },
+  { min: 5000, label: "Amazing", emoji: "🔥", color: "text-emerald-400", bg: "bg-emerald-500/20 border-emerald-500/40" },
+  { min: 3000, label: "Great", emoji: "✨", color: "text-blue-400", bg: "bg-blue-500/20 border-blue-500/40" },
+  { min: 1000, label: "Good", emoji: "👍", color: "text-purple-400", bg: "bg-purple-500/20 border-purple-500/40" },
+  { min: 0, label: "Keep Trying", emoji: "🌍", color: "text-gray-400", bg: "bg-white/5 border-white/10" },
+];
+
+function scoreTier(score: number) {
+  return SCORE_TIERS.find((t) => score >= t.min) ?? SCORE_TIERS[SCORE_TIERS.length - 1];
+}
+
+function distanceContext(km: number): string {
+  if (km < 10) return "almost a perfect guess!";
+  for (const c of DISTANCE_COMPARISONS) {
+    if (km <= c.km) return c.text;
+  }
+  return "more than halfway around the world";
+}
 
 const listVariants = {
   hidden: {},
@@ -45,6 +78,19 @@ export default function ResultScreen() {
 
   const { score, distance, actualLocation, guessedLocation, stage } = result;
 
+  useEffect(() => {
+    if (score >= 3000) {
+      const duration = score >= 8000 ? 3000 : 1500;
+      const end = Date.now() + duration;
+      const frame = () => {
+        confetti({ particleCount: score >= 8000 ? 4 : 2, angle: 60, spread: 55, origin: { x: 0, y: 0.7 } });
+        confetti({ particleCount: score >= 8000 ? 4 : 2, angle: 120, spread: 55, origin: { x: 1, y: 0.7 } });
+        if (Date.now() < end) requestAnimationFrame(frame);
+      };
+      frame();
+    }
+  }, [score]);
+
   return (
     <div className="flex flex-col lg:flex-row h-screen">
       {/* Left panel: results */}
@@ -69,6 +115,15 @@ export default function ResultScreen() {
               <AnimatedScore value={score} />
             </motion.p>
             <p className="text-sm text-gray-400 mt-1">points</p>
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8, duration: 0.3 }}
+              className={`inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full text-sm font-semibold border ${scoreTier(score).bg} ${scoreTier(score).color}`}
+            >
+              <span>{scoreTier(score).emoji}</span>
+              {scoreTier(score).label}
+            </motion.div>
           </div>
           <motion.div
             className="border-t border-white/10 pt-3 space-y-2 text-sm"
@@ -82,11 +137,16 @@ export default function ResultScreen() {
                 {actualLocation.city}, {actualLocation.country}
               </span>
             </motion.div>
-            <motion.div variants={rowVariants} transition={{ duration: 0.35 }} className="flex justify-between">
-              <span className="text-gray-400">Distance</span>
-              <span className="text-white font-medium">
-                {distance.toLocaleString()} km
-              </span>
+            <motion.div variants={rowVariants} transition={{ duration: 0.35 }}>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Distance</span>
+                <span className="text-white font-medium">
+                  {distance.toLocaleString()} km
+                </span>
+              </div>
+              <p className="text-gray-500 text-xs mt-0.5 text-right italic">
+                {distanceContext(distance)}
+              </p>
             </motion.div>
             <motion.div variants={rowVariants} transition={{ duration: 0.35 }} className="flex justify-between">
               <span className="text-gray-400">Guessed at</span>

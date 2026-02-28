@@ -1,20 +1,34 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { Play, Pause, Volume2, LucideIcon } from "lucide-react";
 import { motion } from "framer-motion";
+
+const activePlayers = new Set<() => void>();
+let currentToggle: (() => void) | null = null;
+
+export function toggleActivePlayer() {
+  currentToggle?.();
+}
 
 interface AudioPlayerProps {
   src: string;
   label: string;
   icon?: LucideIcon;
+  autoPlay?: boolean;
+  onPlayed?: () => void;
 }
 
-export default function AudioPlayer({ src, label, icon: Icon }: AudioPlayerProps) {
+export default function AudioPlayer({ src, label, icon: Icon, autoPlay, onPlayed }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
+  const reportedPlay = useRef(false);
+  const autoPlayRef = useRef(autoPlay);
+  const onPlayedRef = useRef(onPlayed);
+  autoPlayRef.current = autoPlay;
+  onPlayedRef.current = onPlayed;
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -23,33 +37,69 @@ export default function AudioPlayer({ src, label, icon: Icon }: AudioPlayerProps
     setPlaying(false);
     setProgress(0);
     setDuration(0);
+    reportedPlay.current = false;
 
     const onTimeUpdate = () =>
       setProgress(audio.duration ? audio.currentTime / audio.duration : 0);
-    const onLoaded = () => setDuration(audio.duration);
+    const onLoaded = () => {
+      setDuration(audio.duration);
+      if (autoPlayRef.current) {
+        activePlayers.forEach((pause) => pause());
+        audio.play().then(() => setPlaying(true)).catch(() => {});
+      }
+    };
     const onEnded = () => setPlaying(false);
+    const onPlay = () => {
+      if (!reportedPlay.current) {
+        reportedPlay.current = true;
+        onPlayedRef.current?.();
+      }
+    };
 
     audio.addEventListener("timeupdate", onTimeUpdate);
     audio.addEventListener("loadedmetadata", onLoaded);
     audio.addEventListener("ended", onEnded);
+    audio.addEventListener("play", onPlay);
     return () => {
       audio.pause();
       audio.removeEventListener("timeupdate", onTimeUpdate);
       audio.removeEventListener("loadedmetadata", onLoaded);
       audio.removeEventListener("ended", onEnded);
+      audio.removeEventListener("play", onPlay);
     };
   }, [src]);
 
-  const toggle = () => {
+  const pauseSelf = useCallback(() => {
+    const audio = audioRef.current;
+    if (audio && !audio.paused) {
+      audio.pause();
+      setPlaying(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    activePlayers.add(pauseSelf);
+    return () => { activePlayers.delete(pauseSelf); };
+  }, [pauseSelf]);
+
+  const toggle = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) return;
     if (playing) {
       audio.pause();
+      setPlaying(false);
     } else {
+      activePlayers.forEach((pause) => { if (pause !== pauseSelf) pause(); });
       audio.play();
+      setPlaying(true);
+      currentToggle = () => {
+        const a = audioRef.current;
+        if (!a) return;
+        if (a.paused) { a.play(); setPlaying(true); }
+        else { a.pause(); setPlaying(false); }
+      };
     }
-    setPlaying(!playing);
-  };
+  }, [playing, pauseSelf]);
 
   const seek = (e: React.MouseEvent<HTMLDivElement>) => {
     const audio = audioRef.current;
