@@ -109,47 +109,58 @@ export default function GuessMap({
             setGuess={stableSetGuess}
           />
 
-          {(guess || guessedLocation) && (
-            <AdvancedMarker position={(guess || guessedLocation)!}>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                {guessedLocation && (
-                  <div style={{ background: "#f97316", color: "white", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 4, marginBottom: 4, whiteSpace: "nowrap" }}>
-                    Your Guess
+          {(guess || guessedLocation) && (() => {
+            const pos = (guess || guessedLocation)!;
+            const showLabel = !!guessedLocation;
+            const guessIsNorth = showLabel && actualLocation ? pos.lat > actualLocation.lat : false;
+            return (
+              <AdvancedMarker position={pos}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                  {showLabel && guessIsNorth && (
+                    <div style={{ background: "#f97316", color: "white", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 4, marginBottom: 4, whiteSpace: "nowrap" }}>
+                      Your Guess
+                    </div>
+                  )}
+                  <div style={{ position: "relative", width: 16, height: 16 }}>
+                    {!showLabel && (
+                      <div
+                        className="guess-pin-pulse"
+                        style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "#f97316" }}
+                      />
+                    )}
+                    <div style={{ position: "relative", width: 16, height: 16, borderRadius: "50%", background: "#f97316", border: "3px solid white", boxShadow: "0 0 0 1px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.3)" }} />
                   </div>
-                )}
-                <div
-                  style={{
-                    width: 16,
-                    height: 16,
-                    borderRadius: "50%",
-                    background: "#f97316",
-                    border: "3px solid white",
-                    boxShadow: "0 0 0 1px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.3)",
-                  }}
-                />
-              </div>
-            </AdvancedMarker>
-          )}
-
-          {actualLocation && (
-            <AdvancedMarker position={actualLocation}>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                <div style={{ background: "#22c55e", color: "white", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 4, marginBottom: 4, whiteSpace: "nowrap" }}>
-                  Actual
+                  {showLabel && !guessIsNorth && (
+                    <div style={{ background: "#f97316", color: "white", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 4, marginTop: 4, whiteSpace: "nowrap" }}>
+                      Your Guess
+                    </div>
+                  )}
                 </div>
-                <div
-                  style={{
-                    width: 16,
-                    height: 16,
-                    borderRadius: "50%",
-                    background: "#22c55e",
-                    border: "3px solid white",
-                    boxShadow: "0 0 0 1px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.3)",
-                  }}
-                />
-              </div>
-            </AdvancedMarker>
-          )}
+              </AdvancedMarker>
+            );
+          })()}
+
+          {actualLocation && (() => {
+            const guessPos = guessedLocation || guess;
+            const actualIsNorth = guessPos ? actualLocation.lat > guessPos.lat : true;
+            return (
+              <AdvancedMarker position={actualLocation}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                  {actualIsNorth && (
+                    <div style={{ background: "#22c55e", color: "white", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 4, marginBottom: 4, whiteSpace: "nowrap" }}>
+                      Actual
+                    </div>
+                  )}
+                  <div style={{ width: 16, height: 16, borderRadius: "50%", background: "#22c55e", border: "3px solid white", boxShadow: "0 0 0 1px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.3)" }} />
+                  {!actualIsNorth && (
+                    <div style={{ background: "#22c55e", color: "white", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 4, marginTop: 4, whiteSpace: "nowrap" }}>
+                      Actual
+                    </div>
+                  )}
+                </div>
+              </AdvancedMarker>
+            );
+          })()}
 
           {actualLocation && guessedLocation && (
             <ResultLine from={guessedLocation} to={actualLocation} />
@@ -158,8 +169,8 @@ export default function GuessMap({
       </APIProvider>
 
       {!guess && !disabled && (
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-black/60 text-white text-sm px-3 py-1.5 rounded-full pointer-events-none z-[1000]">
-          Click to place your guess
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-black/70 text-white text-sm px-3 py-1.5 rounded-full pointer-events-none z-1000">
+          Click the map to place your guess
         </div>
       )}
     </div>

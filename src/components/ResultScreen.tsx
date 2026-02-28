@@ -4,8 +4,40 @@ import { useState } from "react";
 import { useGame } from "@/context/GameContext";
 import { MapPin, Trophy, RotateCcw } from "lucide-react";
 import dynamic from "next/dynamic";
+import { motion } from "framer-motion";
+import { useEffect, useRef } from "react";
 
 const GuessMap = dynamic(() => import("@/components/GuessMap"), { ssr: false });
+
+const listVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.08, delayChildren: 0.3 } },
+};
+
+const rowVariants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0 },
+};
+
+function AnimatedScore({ value }: { value: number }) {
+  const [display, setDisplay] = useState(0);
+  const raf = useRef<number | null>(null);
+
+  useEffect(() => {
+    const start = performance.now();
+    const duration = 900;
+    const animate = (now: number) => {
+      const t = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      setDisplay(Math.round(eased * value));
+      if (t < 1) raf.current = requestAnimationFrame(animate);
+    };
+    raf.current = requestAnimationFrame(animate);
+    return () => { if (raf.current) cancelAnimationFrame(raf.current); };
+  }, [value]);
+
+  return <>{display.toLocaleString()}</>;
+}
 
 export default function ResultScreen() {
   const { result, goToLeaderboard, playAgain, username, sessionId } = useGame();
@@ -16,35 +48,52 @@ export default function ResultScreen() {
   return (
     <div className="flex flex-col lg:flex-row h-screen">
       {/* Left panel: results */}
-      <div className="lg:w-96 w-full bg-black/40 border-r border-white/10 p-6 flex flex-col gap-5 overflow-y-auto">
+      <motion.div
+        className="lg:w-96 w-full bg-black/40 border-r border-white/10 p-6 flex flex-col gap-5 overflow-y-auto"
+        initial={{ opacity: 0, x: -32 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.45, ease: "easeOut" }}
+      >
         <h2 className="text-2xl font-bold flex items-center gap-2">
           <MapPin className="text-amber-500" size={24} /> Results
         </h2>
 
         <div className="bg-white/5 rounded-xl p-5 space-y-3">
           <div className="text-center">
-            <p className="text-5xl font-extrabold text-amber-500">{score}</p>
+            <motion.p
+              className="text-5xl font-extrabold text-amber-500"
+              initial={{ scale: 0.6, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.4, type: "spring", stiffness: 200 }}
+            >
+              <AnimatedScore value={score} />
+            </motion.p>
             <p className="text-sm text-gray-400 mt-1">points</p>
           </div>
-          <div className="border-t border-white/10 pt-3 space-y-2 text-sm">
-            <div className="flex justify-between">
+          <motion.div
+            className="border-t border-white/10 pt-3 space-y-2 text-sm"
+            variants={listVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <motion.div variants={rowVariants} transition={{ duration: 0.35 }} className="flex justify-between">
               <span className="text-gray-400">Location</span>
               <span className="text-white font-medium">
                 {actualLocation.city}, {actualLocation.country}
               </span>
-            </div>
-            <div className="flex justify-between">
+            </motion.div>
+            <motion.div variants={rowVariants} transition={{ duration: 0.35 }} className="flex justify-between">
               <span className="text-gray-400">Distance</span>
               <span className="text-white font-medium">
                 {distance.toLocaleString()} km
               </span>
-            </div>
-            <div className="flex justify-between">
+            </motion.div>
+            <motion.div variants={rowVariants} transition={{ duration: 0.35 }} className="flex justify-between">
               <span className="text-gray-400">Guessed at</span>
               <span className="text-white font-medium">Stage {stage}</span>
-            </div>
+            </motion.div>
             {result.languagePhrase && (
-              <div className="border-t border-white/10 pt-2">
+              <motion.div variants={rowVariants} transition={{ duration: 0.35 }} className="border-t border-white/10 pt-2">
                 <p className="text-gray-400">The phrase was:</p>
                 <p className="text-white font-medium italic">
                   &quot;{result.languagePhrase}&quot;
@@ -52,37 +101,46 @@ export default function ResultScreen() {
                 <p className="text-gray-500 text-xs">
                   ({result.languageTranslation})
                 </p>
-              </div>
+              </motion.div>
             )}
-          </div>
+          </motion.div>
         </div>
 
         <div className="flex flex-col gap-2 mt-auto">
           <SaveScoreButton username={username} score={score} sessionId={sessionId} />
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
             onClick={goToLeaderboard}
             className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white font-medium transition"
           >
             <Trophy size={16} /> View Leaderboard
-          </button>
-          <button
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
             onClick={playAgain}
             className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold transition"
           >
             <RotateCcw size={16} /> Play Again
-          </button>
+          </motion.button>
         </div>
-      </div>
+      </motion.div>
 
       {/* Right panel: map with both markers */}
-      <div className="flex-1 relative">
+      <motion.div
+        className="flex-1 relative"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.25 }}
+      >
         <GuessMap
           onGuess={() => {}}
           disabled
           actualLocation={actualLocation}
           guessedLocation={guessedLocation}
         />
-      </div>
+      </motion.div>
     </div>
   );
 }
@@ -112,12 +170,14 @@ function SaveScoreButton({
   };
 
   return (
-    <button
+    <motion.button
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.97 }}
       onClick={handleSave}
       disabled={saved || saving}
       className="px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
     >
       {saved ? "Score Saved!" : saving ? "Saving…" : "Save Score to Leaderboard"}
-    </button>
+    </motion.button>
   );
 }
