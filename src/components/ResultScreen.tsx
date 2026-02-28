@@ -22,6 +22,18 @@ const DISTANCE_COMPARISONS = [
   { km: 15000, text: "nearly halfway around the world" },
 ];
 
+const SCORE_TIERS = [
+  { min: 8000, label: "Perfect", emoji: "🎯", color: "text-amber-400", bg: "bg-amber-500/20 border-amber-500/40" },
+  { min: 5000, label: "Amazing", emoji: "🔥", color: "text-emerald-400", bg: "bg-emerald-500/20 border-emerald-500/40" },
+  { min: 3000, label: "Great", emoji: "✨", color: "text-blue-400", bg: "bg-blue-500/20 border-blue-500/40" },
+  { min: 1000, label: "Good", emoji: "👍", color: "text-purple-400", bg: "bg-purple-500/20 border-purple-500/40" },
+  { min: 0, label: "Keep Trying", emoji: "🌍", color: "text-gray-400", bg: "bg-white/5 border-white/10" },
+];
+
+function scoreTier(score: number) {
+  return SCORE_TIERS.find((t) => score >= t.min) ?? SCORE_TIERS[SCORE_TIERS.length - 1];
+}
+
 function distanceContext(km: number): string {
   if (km < 10) return "almost a perfect guess!";
   for (const c of DISTANCE_COMPARISONS) {
@@ -103,6 +115,15 @@ export default function ResultScreen() {
               <AnimatedScore value={score} />
             </motion.p>
             <p className="text-sm text-gray-400 mt-1">points</p>
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8, duration: 0.3 }}
+              className={`inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full text-sm font-semibold border ${scoreTier(score).bg} ${scoreTier(score).color}`}
+            >
+              <span>{scoreTier(score).emoji}</span>
+              {scoreTier(score).label}
+            </motion.div>
           </div>
           <motion.div
             className="border-t border-white/10 pt-3 space-y-2 text-sm"
