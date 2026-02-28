@@ -8,13 +8,20 @@ interface AudioPlayerProps {
   src: string;
   label: string;
   icon?: LucideIcon;
+  autoPlay?: boolean;
+  onPlayed?: () => void;
 }
 
-export default function AudioPlayer({ src, label, icon: Icon }: AudioPlayerProps) {
+export default function AudioPlayer({ src, label, icon: Icon, autoPlay, onPlayed }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
+  const reportedPlay = useRef(false);
+  const autoPlayRef = useRef(autoPlay);
+  const onPlayedRef = useRef(onPlayed);
+  autoPlayRef.current = autoPlay;
+  onPlayedRef.current = onPlayed;
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -23,20 +30,34 @@ export default function AudioPlayer({ src, label, icon: Icon }: AudioPlayerProps
     setPlaying(false);
     setProgress(0);
     setDuration(0);
+    reportedPlay.current = false;
 
     const onTimeUpdate = () =>
       setProgress(audio.duration ? audio.currentTime / audio.duration : 0);
-    const onLoaded = () => setDuration(audio.duration);
+    const onLoaded = () => {
+      setDuration(audio.duration);
+      if (autoPlayRef.current) {
+        audio.play().then(() => setPlaying(true)).catch(() => {});
+      }
+    };
     const onEnded = () => setPlaying(false);
+    const onPlay = () => {
+      if (!reportedPlay.current) {
+        reportedPlay.current = true;
+        onPlayedRef.current?.();
+      }
+    };
 
     audio.addEventListener("timeupdate", onTimeUpdate);
     audio.addEventListener("loadedmetadata", onLoaded);
     audio.addEventListener("ended", onEnded);
+    audio.addEventListener("play", onPlay);
     return () => {
       audio.pause();
       audio.removeEventListener("timeupdate", onTimeUpdate);
       audio.removeEventListener("loadedmetadata", onLoaded);
       audio.removeEventListener("ended", onEnded);
+      audio.removeEventListener("play", onPlay);
     };
   }, [src]);
 

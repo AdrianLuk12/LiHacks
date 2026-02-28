@@ -121,7 +121,15 @@ export default function GuessMap({
                       Your Guess
                     </div>
                   )}
-                  <div style={{ width: 16, height: 16, borderRadius: "50%", background: "#f97316", border: "3px solid white", boxShadow: "0 0 0 1px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.3)" }} />
+                  <div style={{ position: "relative", width: 16, height: 16 }}>
+                    {!showLabel && (
+                      <div
+                        className="guess-pin-pulse"
+                        style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "#f97316" }}
+                      />
+                    )}
+                    <div style={{ position: "relative", width: 16, height: 16, borderRadius: "50%", background: "#f97316", border: "3px solid white", boxShadow: "0 0 0 1px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.3)" }} />
+                  </div>
                   {showLabel && !guessIsNorth && (
                     <div style={{ background: "#f97316", color: "white", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 4, marginTop: 4, whiteSpace: "nowrap" }}>
                       Your Guess
