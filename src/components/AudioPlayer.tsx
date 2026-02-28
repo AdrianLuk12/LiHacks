@@ -1,14 +1,16 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import { Play, Pause, Volume2 } from "lucide-react";
+import { Play, Pause, Volume2, LucideIcon } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface AudioPlayerProps {
   src: string;
   label: string;
+  icon?: LucideIcon;
 }
 
-export default function AudioPlayer({ src, label }: AudioPlayerProps) {
+export default function AudioPlayer({ src, label, icon: Icon }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -63,30 +65,35 @@ export default function AudioPlayer({ src, label }: AudioPlayerProps) {
     return `${m}:${sec.toString().padStart(2, "0")}`;
   };
 
+  const LabelIcon = Icon ?? Volume2;
+
   return (
     <div className="bg-white/10 rounded-xl px-4 py-3 flex items-center gap-3 w-full max-w-md">
       <audio ref={audioRef} src={src} preload="metadata" />
-      <button
+      <motion.button
         onClick={toggle}
-        className="flex-shrink-0 w-10 h-10 rounded-full bg-amber-500 hover:bg-amber-400 transition flex items-center justify-center text-black"
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.93 }}
+        className="shrink-0 w-10 h-10 rounded-full bg-amber-500 hover:bg-amber-400 transition flex items-center justify-center text-black"
       >
         {playing ? <Pause size={18} /> : <Play size={18} className="ml-0.5" />}
-      </button>
-      <div className="flex-1 flex flex-col gap-1">
+      </motion.button>
+      <div className="flex-1 flex flex-col gap-1.5">
         <div className="flex items-center gap-2 text-xs text-gray-400">
-          <Volume2 size={12} />
+          <LabelIcon size={12} className="text-amber-500" />
           <span className="font-medium text-gray-200">{label}</span>
-          <span className="ml-auto">
+          <span className="ml-auto tabular-nums">
             {fmt(duration * progress)} / {fmt(duration)}
           </span>
         </div>
         <div
-          className="h-1.5 bg-white/20 rounded-full cursor-pointer"
+          className="h-1.5 bg-white/20 rounded-full cursor-pointer group"
           onClick={seek}
         >
-          <div
-            className="h-full bg-amber-500 rounded-full transition-all"
-            style={{ width: `${progress * 100}%` }}
+          <motion.div
+            className="h-full bg-amber-500 rounded-full origin-left"
+            style={{ scaleX: progress }}
+            transition={{ type: "tween", ease: "linear", duration: 0.1 }}
           />
         </div>
       </div>

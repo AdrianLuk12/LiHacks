@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@vis.gl/react-google-maps": "^1.7.1",
+    "framer-motion": "^12.34.3",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.468.0",
     "next": "^15.1.0",

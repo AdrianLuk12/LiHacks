@@ -158,8 +158,8 @@ export default function GuessMap({
       </APIProvider>
 
       {!guess && !disabled && (
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-black/60 text-white text-sm px-3 py-1.5 rounded-full pointer-events-none z-[1000]">
-          Click to place your guess
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-black/70 text-white text-sm px-3 py-1.5 rounded-full pointer-events-none z-1000">
+          Click the map to place your guess
         </div>
       )}
     </div>

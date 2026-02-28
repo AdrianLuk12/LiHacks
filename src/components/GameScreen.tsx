@@ -2,12 +2,14 @@
 
 import { useGame } from "@/context/GameContext";
 import AudioPlayer from "@/components/AudioPlayer";
-import { MapPin, ArrowRight, Lock, Unlock } from "lucide-react";
+import { MapPin, ArrowRight, Lock, Unlock, Volume2, Music, MessageCircle } from "lucide-react";
 import dynamic from "next/dynamic";
+import { motion, AnimatePresence } from "framer-motion";
 
 const GuessMap = dynamic(() => import("@/components/GuessMap"), { ssr: false });
 
-const STAGE_LABELS = ["🔊 Ambient", "🎵 Music", "🗣️ Language"];
+const STAGE_LABELS = ["Ambient", "Music", "Language"];
+const STAGE_ICONS = [Volume2, Music, MessageCircle];
 const STAGE_KEYS: Array<"ambient" | "music" | "language"> = [
   "ambient",
   "music",
@@ -30,12 +32,22 @@ export default function GameScreen() {
   const canAdvance = stage < 3;
 
   return (
-    <div className="flex flex-col lg:flex-row h-screen">
+    <motion.div
+      className="flex flex-col lg:flex-row h-screen"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+    >
       {/* Left panel: clues & controls */}
       <div className="lg:w-96 w-full bg-black/40 border-r border-white/10 p-6 flex flex-col gap-5 overflow-y-auto">
-        <h2 className="text-xl font-bold">
+        <motion.h2
+          className="text-xl font-bold"
+          initial={{ opacity: 0, x: -12 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        >
           Stage {stage} of 3
-        </h2>
+        </motion.h2>
 
         {/* Stage indicators */}
         <div className="flex gap-2">
@@ -43,9 +55,13 @@ export default function GameScreen() {
             const stageNum = i + 1;
             const isCurrent = stageNum === stage;
             const isUnlocked = stageNum <= stage;
+            const Icon = STAGE_ICONS[i];
             return (
-              <div
+              <motion.div
                 key={i}
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3, delay: 0.15 + i * 0.07 }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition ${
                   isCurrent
                     ? "bg-amber-500/20 border-amber-500 text-amber-400"
@@ -55,62 +71,86 @@ export default function GameScreen() {
                 }`}
               >
                 {isUnlocked ? <Unlock size={12} /> : <Lock size={12} />}
+                <Icon size={11} />
                 {label}
-              </div>
+              </motion.div>
             );
           })}
         </div>
 
         {/* Audio players for all unlocked stages */}
         <div className="flex flex-col gap-3">
-          {STAGE_KEYS.map((key, i) => {
-            const stageNum = i + 1;
-            const isUnlocked = stageNum <= stage;
-            if (!isUnlocked) return null;
-            const isCurrent = stageNum === stage;
-            return (
-              <div
-                key={key}
-                className={`rounded-lg transition ${
-                  isCurrent
-                    ? "ring-1 ring-amber-500/50"
-                    : "opacity-75 hover:opacity-100"
-                }`}
-              >
-                <AudioPlayer
-                  src={audio[key]}
-                  label={`${STAGE_LABELS[i]}`}
-                />
-              </div>
-            );
-          })}
+          <AnimatePresence initial={false}>
+            {STAGE_KEYS.map((key, i) => {
+              const stageNum = i + 1;
+              const isUnlocked = stageNum <= stage;
+              if (!isUnlocked) return null;
+              const isCurrent = stageNum === stage;
+              const Icon = STAGE_ICONS[i];
+              return (
+                <motion.div
+                  key={key}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.35, ease: "easeOut" }}
+                  className={`rounded-lg transition ${
+                    isCurrent
+                      ? "ring-1 ring-amber-500/50"
+                      : "opacity-75 hover:opacity-100"
+                  }`}
+                >
+                  <AudioPlayer
+                    src={audio[key]}
+                    label={`${STAGE_LABELS[i]}`}
+                    icon={Icon}
+                  />
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
         </div>
 
         {/* Actions */}
         <div className="flex flex-col gap-2 mt-auto">
-          {canAdvance && (
-            <button
-              onClick={nextStage}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white font-medium transition"
-            >
-              Next Clue <ArrowRight size={16} />
-            </button>
-          )}
-          <button
+          <AnimatePresence>
+            {canAdvance && (
+              <motion.button
+                key="next"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ duration: 0.25 }}
+                onClick={nextStage}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white font-medium transition"
+              >
+                Next Clue <ArrowRight size={16} />
+              </motion.button>
+            )}
+          </AnimatePresence>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
             onClick={submitGuess}
             disabled={!guessCoords || isLoading}
             className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed text-black font-semibold transition"
           >
             <MapPin size={16} />
             {guessCoords ? "Submit Guess" : "Place a pin to guess"}
-          </button>
+          </motion.button>
         </div>
       </div>
 
       {/* Right panel: map */}
-      <div className="flex-1 relative">
+      <motion.div
+        className="flex-1 relative"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
         <GuessMap onGuess={(lat, lng) => setGuessCoords(lat, lng)} />
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
