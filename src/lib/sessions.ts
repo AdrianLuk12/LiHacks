@@ -15,8 +15,16 @@ export interface GameSession {
   languageTranslation?: string;
 }
 
-// In-memory session store (fine for a single-process MVP)
-const sessions = new Map<string, GameSession>();
+// Persist across Next.js dev-mode module reloads via globalThis
+const globalSessions = globalThis as typeof globalThis & {
+  __sonicGuessrSessions?: Map<string, GameSession>;
+};
+
+if (!globalSessions.__sonicGuessrSessions) {
+  globalSessions.__sonicGuessrSessions = new Map();
+}
+
+const sessions = globalSessions.__sonicGuessrSessions;
 
 export function setSession(session: GameSession) {
   sessions.set(session.id, session);
