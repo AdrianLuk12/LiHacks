@@ -87,7 +87,7 @@ export default function GameScreen() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3, delay: 0.15 + i * 0.07 }}
                 title={`${label} — ${STAGE_MULTIPLIERS[i]} score multiplier`}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition cursor-default ${
+                className={`flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium border transition cursor-default ${
                   isCurrent
                     ? "bg-amber-500/20 border-amber-500 text-amber-400"
                     : isUnlocked
@@ -95,10 +95,9 @@ export default function GameScreen() {
                     : "bg-white/5 border-white/10 text-gray-600"
                 }`}
               >
-                {isUnlocked ? <Unlock size={12} /> : <Lock size={12} />}
-                <Icon size={11} />
+                {isUnlocked ? <Unlock size={10} /> : <Lock size={10} />}
                 {label}
-                <span className="text-[10px] opacity-60">{STAGE_MULTIPLIERS[i]}</span>
+                <span className="text-[9px] opacity-60">{STAGE_MULTIPLIERS[i]}</span>
               </motion.div>
             );
           })}
