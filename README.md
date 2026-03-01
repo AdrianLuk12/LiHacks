@@ -1,6 +1,6 @@
 # 🎧 EchoGuessr
 
-**Winner — Best Use of Backboard.io** at [ListenHacks](https://listenhacks.devpost.com/) (MLH Hack Days, Toronto, March 2026)
+**Winner — Best Use of Backboard.io** at [ListenHacks](https://lihacks-2026.devpost.com/) (MLH Hack Days, Toronto, March 2026)
 
 An audio-based geography guessing game where players identify real-world locations by listening to AI-generated sound clues.
 
