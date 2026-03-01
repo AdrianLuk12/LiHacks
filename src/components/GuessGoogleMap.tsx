@@ -101,7 +101,7 @@ export default function GuessGoogleMap({
           mapTypeControl={false}
           streetViewControl={false}
           fullscreenControl={false}
-          mapId="sonicguessr"
+          mapId="echoguessr"
           className="w-full h-full"
           colorScheme="LIGHT"
         >
