@@ -144,3 +144,7 @@ npm start
 | `/api/game/guess` | POST | Submit map coordinates, receive score and actual location |
 | `/api/leaderboard` | GET | Fetch top 100 scores |
 | `/api/leaderboard` | POST | Save a score to the leaderboard |
+
+## License
+
+MIT — see [LICENSE](LICENSE).
